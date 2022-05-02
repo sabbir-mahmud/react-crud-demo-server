@@ -42,13 +42,26 @@ async function products() {
         const productCollection = client.db('ISP-Warehouse').collection('Products');
 
         /**
+        * --------------------------------------------------
+        * root route
+        * --------------------------------------------------
+        */
+
+        app.get('/', (req, res) => {
+            res.send('isp warehouse server running...');
+        })
+
+
+        /**
          * --------------------------------------------------
          * Get all products
          * --------------------------------------------------
          */
 
         app.get('/api/products', async (req, res) => {
-            const cursor = {};
+            const query = req.query;
+            const cursor = query ? query : {};
+            console.log(cursor);
             const products = await productCollection.find(cursor).toArray();
             res.send(products);
         })
@@ -64,6 +77,17 @@ async function products() {
             const result = await productCollection.insertOne(product);
             res.send(result);
         })
+        /**
+         * --------------------------------------------------
+         * delete product
+         * --------------------------------------------------
+         */
+        app.delete('/api/products/:id', async (req, res) => {
+            const product = req.params.id;
+            const result = await productCollection.deleteOne({ _id: ObjectId(product) });
+            res.send(result);
+
+        })
 
     }
     finally {
@@ -74,15 +98,6 @@ async function products() {
 products().catch(console.dir);
 
 
-/**
- * --------------------------------------------------
- * root route
- * --------------------------------------------------
- */
-
-app.get('/', (req, res) => {
-    res.send('isp warehouse server running...');
-})
 
 
 /**
