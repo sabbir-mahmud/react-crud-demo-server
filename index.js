@@ -64,6 +64,20 @@ async function products() {
             const products = await productCollection.find(cursor).toArray();
             res.send(products);
         })
+
+        /**
+         * --------------------------------------------------
+         * get product by id
+         * --------------------------------------------------
+         */
+
+        app.get('/api/products/:id', async (req, res) => {
+            const id = req.params.id;
+            console.log(id);
+            const product = await productCollection.findOne({ _id: ObjectId(id) });
+            res.send(product);
+        })
+
         /**
          * --------------------------------------------------
          * add product
