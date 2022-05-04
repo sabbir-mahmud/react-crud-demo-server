@@ -61,7 +61,6 @@ async function products() {
         app.get('/api/products', async (req, res) => {
             const query = req.query;
             const cursor = query ? query : {};
-            console.log(cursor);
             const products = await productCollection.find(cursor).toArray();
             res.send(products);
         })
@@ -77,6 +76,27 @@ async function products() {
             const result = await productCollection.insertOne(product);
             res.send(result);
         })
+
+        /**
+         * --------------------------------------------------
+         * shipped a single product
+         * --------------------------------------------------
+         */
+
+        app.put('/api/products/shipped/:id', async (req, res) => {
+            const id = req.params.id;
+            const product = await productCollection.findOne({ _id: ObjectId(id) });
+            if (product) {
+                const quantity = product.quantity - 1;
+                const result = await productCollection.updateOne({ _id: ObjectId(id) }, { $set: { quantity: quantity } });
+                res.send(result);
+            }
+            else {
+                res.send('product not found');
+            }
+        })
+
+
         /**
          * --------------------------------------------------
          * delete product
