@@ -73,7 +73,6 @@ async function products() {
 
         app.get('/api/products/:id', async (req, res) => {
             const id = req.params.id;
-            console.log(id);
             const product = await productCollection.findOne({ _id: ObjectId(id) });
             res.send(product);
         })
@@ -86,30 +85,46 @@ async function products() {
 
         app.post('/api/products', async (req, res) => {
             const product = req.body;
-            console.log(product);
             const result = await productCollection.insertOne(product);
             res.send(result);
         })
 
         /**
          * --------------------------------------------------
-         * shipped a single product
+         * shipped a product single or multiple
          * --------------------------------------------------
          */
 
         app.put('/api/products/shipped/:id', async (req, res) => {
             const id = req.params.id;
+            const qtn = req.body.quantity;
             const product = await productCollection.findOne({ _id: ObjectId(id) });
             if (product) {
-                const quantity = product.quantity - 1;
+                const quantity = qtn ? parseInt(product.quantity) - parseInt(qtn) : parseInt(product.quantity) - 1;
                 const result = await productCollection.updateOne({ _id: ObjectId(id) }, { $set: { quantity: quantity } });
                 res.send(result);
             }
             else {
                 res.send('product not found');
             }
-        })
+        });
 
+        /**
+         * --------------------------------------------------
+         * update stock
+         * --------------------------------------------------
+         */
+
+        app.put('/api/product/stock/:id', async (req, res) => {
+            const id = req.params.id;
+            const qtn = req.body.quantity;
+            const product = await productCollection.findOne({ _id: ObjectId(id) });
+            if (product) {
+                const quantity = parseInt(product.quantity) + parseInt(qtn);
+                const result = await productCollection.updateOne({ _id: ObjectId(id) }, { $set: { quantity: quantity } });
+                res.send(result);
+            }
+        });
 
         /**
          * --------------------------------------------------
