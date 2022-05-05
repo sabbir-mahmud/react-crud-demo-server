@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const jwt = require('jsonwebtoken');
 const { MongoClient, ServerApiVersion } = require('mongodb');
 const ObjectId = require('mongodb').ObjectId;
 require('dotenv').config();
@@ -13,6 +14,31 @@ const port = process.env.PORT || 5000;
  */
 app.use(cors());
 app.use(express.json());
+
+/**
+ * --------------------------------------------------
+ * JWT token middleware
+ * --------------------------------------------------
+ */
+
+function verifyJWT(req, res, next) {
+    const auth = req.headers.authorization;
+    if (!auth) {
+        return res.status(401).send({ message: 'unauthorized access' });
+    } else {
+        const token = auth.split(' ')[1];
+        jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+            if (err) {
+                console.log(err);
+                return res.status(403).send({ message: 'Forbidden access' });
+            }
+            else {
+                req.decoded = decoded;
+                next();
+            }
+        });
+    };
+};
 
 /**
  * --------------------------------------------------
@@ -53,11 +79,26 @@ async function products() {
 
         /**
          * --------------------------------------------------
+         * jwt token
+         * --------------------------------------------------
+         */
+
+        app.post('/api/login', (req, res) => {
+            const user = req.body;
+            const accessToken = jwt.sign(user, process.env.JWT_SECRET, {
+                expiresIn: '5m'
+            });
+            res.send({ accessToken });
+
+        });
+
+        /**
+         * --------------------------------------------------
          * Get all products
          * --------------------------------------------------
          */
 
-        app.get('/api/products', async (req, res) => {
+        app.get('/api/products', verifyJWT, async (req, res) => {
             const query = req.query;
             const cursor = query ? query : {};
             const products = await productCollection.find(cursor).toArray();
