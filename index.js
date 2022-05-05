@@ -16,7 +16,7 @@ app.use(express.json());
 
 /**
  * --------------------------------------------------
- * Connecting to database
+ * Config database
  * --------------------------------------------------
  * Mongo DB
  * --------------------------------------------------
@@ -49,8 +49,7 @@ async function products() {
 
         app.get('/', (req, res) => {
             res.send('isp warehouse server running...');
-        })
-
+        });
 
         /**
          * --------------------------------------------------
@@ -62,6 +61,17 @@ async function products() {
             const query = req.query;
             const cursor = query ? query : {};
             const products = await productCollection.find(cursor).toArray();
+            res.send(products);
+        });
+
+        /**
+         * --------------------------------------------------
+         * fetch latest product
+         * --------------------------------------------------
+         */
+
+        app.get('/api/products/latest', async (req, res) => {
+            const products = await productCollection.find().sort({ _id: -1 }).limit(1).toArray();
             res.send(products);
         })
 
@@ -75,7 +85,7 @@ async function products() {
             const id = req.params.id;
             const product = await productCollection.findOne({ _id: ObjectId(id) });
             res.send(product);
-        })
+        });
 
         /**
          * --------------------------------------------------
@@ -87,7 +97,7 @@ async function products() {
             const product = req.body;
             const result = await productCollection.insertOne(product);
             res.send(result);
-        })
+        });
 
         /**
          * --------------------------------------------------
@@ -136,13 +146,18 @@ async function products() {
             const result = await productCollection.deleteOne({ _id: ObjectId(product) });
             res.send(result);
 
-        })
+        });
 
     }
     finally {
+        /**
+         * --------------------------------------------------
+         * disconnect from MongoDB
+         * --------------------------------------------------
+         */
         // client.close();
     }
-}
+};
 
 products().catch(console.dir);
 
@@ -156,4 +171,4 @@ products().catch(console.dir);
  */
 app.listen(port, () => {
     console.log(`Server started on port... ${port}`);
-})
+});
