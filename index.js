@@ -86,7 +86,7 @@ async function products() {
         app.post('/api/login', (req, res) => {
             const user = req.body;
             const accessToken = jwt.sign(user, process.env.JWT_SECRET, {
-                expiresIn: '5m'
+                expiresIn: '1d'
             });
             res.send({ accessToken });
 
@@ -113,6 +113,16 @@ async function products() {
 
         app.get('/api/products/latest', async (req, res) => {
             const products = await productCollection.find().sort({ _id: -1 }).limit(1).toArray();
+            res.send(products);
+        })
+        /**
+         * --------------------------------------------------
+         * fetch latest 10 product
+         * --------------------------------------------------
+         */
+
+        app.get('/api/products/latests', async (req, res) => {
+            const products = await productCollection.find().sort({ _id: -1 }).limit(6).toArray();
             res.send(products);
         })
 
